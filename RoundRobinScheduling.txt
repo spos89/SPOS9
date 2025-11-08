@@ -1,0 +1,92 @@
+import java.util.*; 
+class Process { 
+    String id; 
+    int arrivalTime; 
+    int burstTime; 
+    int remainingTime; 
+    int completionTime; 
+    int turnAroundTime; 
+    int waitingTime; 
+    public Process(String id, int arrivalTime, int burstTime) { 
+        this.id = id; 
+        this.arrivalTime = arrivalTime; 
+        this.burstTime = burstTime; 
+        this.remainingTime = burstTime; 
+    } 
+} 
+public class RoundRobinScheduling { 
+    public static void main(String[] args) { 
+        Scanner sc = new Scanner(System.in); 
+        System.out.print("Enter Number of Processes: "); 
+        int n = sc.nextInt(); 
+        List<Process> processes = new ArrayList<>(); 
+ 
+        for (int i = 1; i <= n; i++) { 
+            System.out.print("Enter arrival time for P" + i + ": "); 
+            int at = sc.nextInt(); 
+            System.out.print("Enter burst time for P" + i + ": "); 
+            int bt = sc.nextInt(); 
+            processes.add(new Process("P" + i, at, bt)); 
+        } 
+        System.out.print("Enter time quantum: "); 
+        int tq = sc.nextInt(); 
+        // Sort by arrival 
+        processes.sort(Comparator.comparingInt(p -> p.arrivalTime)); 
+        Queue<Process> queue = new LinkedList<>(); 
+        int time = 0, completed = 0; 
+        boolean[] visited = new boolean[n]; 
+        // Start from first process 
+        queue.add(processes.get(0)); 
+        visited[0] = true; 
+        time = processes.get(0).arrivalTime; 
+        while (!queue.isEmpty()) { 
+            Process current = queue.poll(); 
+            // Execute current process 
+            if (current.remainingTime > tq) { 
+                time += tq; 
+                current.remainingTime -= tq; 
+            } else { 
+                time += current.remainingTime; 
+                current.remainingTime = 0; 
+                current.completionTime = time; 
+                current.turnAroundTime = current.completionTime - current.arrivalTime; 
+                current.waitingTime = current.turnAroundTime - current.burstTime; 
+                completed++; 
+            } 
+            //  Add all processes that have arrived till 'time' before re-adding current 
+            for (int i = 0; i < n; i++) { 
+                Process p = processes.get(i); 
+                if (!visited[i] && p.arrivalTime <= time) { 
+                    queue.add(p); 
+                    visited[i] = true; 
+                } 
+            } 
+            // Re-add if not finished 
+            if (current.remainingTime > 0) { 
+                queue.add(current); 
+            } 
+            // If queue is empty and not all done 
+            if (queue.isEmpty() && completed < n) { 
+                for (int i = 0; i < n; i++) { 
+                    if (!visited[i]) { 
+                        queue.add(processes.get(i)); 
+                        visited[i] = true; 
+                        time = processes.get(i).arrivalTime; 
+                        break; 
+                    } 
+                } 
+            } 
+        } 
+        // Print output 
+        System.out.println("\nProcess\tArrival\tBurst\tCompletion\tTurnaround\tWaiting"); 
+        for (Process p : processes) { 
+            System.out.printf("%s\t\t%d\t\t%d\t\t%d\t\t\t%d\t\t\t%d\n", 
+                    p.id, p.arrivalTime, p.burstTime, p.completionTime, p.turnAroundTime, p.waitingTime); 
+        } 
+        double avgTAT = processes.stream().mapToInt(p -> p.turnAroundTime).average().orElse(0); 
+        double avgWT = processes.stream().mapToInt(p -> p.waitingTime).average().orElse(0); 
+        System.out.printf("\nAverage Turnaround Time: %.2f", avgTAT); 
+        System.out.printf("\nAverage Waiting Time: %.2f\n", avgWT); 
+        sc.close(); 
+    } 
+} 

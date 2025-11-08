@@ -1,0 +1,172 @@
+Assignment No. : 2(B)
+
+
+intermediate.txt
+M1 10,20,&b=CREG
+M2 100,200,&u=AREG,&v=BREG
+
+
+mdt.txt
+MOVE #3,#1
+ADD #3,='1'
+MOVER #3,#2
+M2 69,169
+ADD #3,='5'
+MEND
+MOVER #3,#1
+MOVER #4,#2
+M3 73,173
+ADD #3,='15'
+ADD #4,='10'
+MEND
+ADD #1,#2
+MEND
+
+
+mnt.txt
+M1	2	2	1	1
+M2	2	2	7	3
+M3	2	0	13	4
+
+
+
+ala.txt
+a	AREG
+b	CREG
+u	CREG
+v	DREG
+
+
+
+
+
+
+macroPass2.java
+
+import java.io.*;
+import java.util.HashMap;
+import java.util.Vector;
+
+public class macroPass2 {
+
+    public static void main(String[] args) throws IOException {
+
+       
+        BufferedReader b1 = new BufferedReader(new FileReader("C:\\Users\\Jaybhay Karan Ganesh\\Downloads\\SPOS 2B\\intermediate.txt"));
+        BufferedReader b2 = new BufferedReader(new FileReader("C:\\Users\\Jaybhay Karan Ganesh\\Downloads\\SPOS 2B\\mnt.txt"));
+        BufferedReader b3 = new BufferedReader(new FileReader("C:\\Users\\Jaybhay Karan Ganesh\\Downloads\\SPOS 2B\\mdt.txt"));
+        BufferedReader b4 = new BufferedReader(new FileReader("C:\\Users\\Jaybhay Karan Ganesh\\Downloads\\SPOS 2B\\ala.txt"));
+
+        
+        FileWriter f1 = new FileWriter("Pass2.txt");
+
+        
+        HashMap<Integer, String> aptab = new HashMap<>();
+        HashMap<String, Integer> aptabInverse = new HashMap<>();
+        HashMap<String, Integer> mdtpHash = new HashMap<>();
+        HashMap<String, Integer> kpdtpHash = new HashMap<>();
+        HashMap<String, Integer> kpHash = new HashMap<>();
+        HashMap<String, Integer> macroNameHash = new HashMap<>();
+
+        Vector<String> mdt = new Vector<>();
+        Vector<String> kpdt = new Vector<>();
+
+        String s, s1;
+        int i, pp, kp, kpdtp, mdtp, paramNo;
+
+        
+        while ((s = b3.readLine()) != null) {
+            mdt.addElement(s.trim());
+        }
+
+        
+        while ((s = b4.readLine()) != null) {
+            kpdt.addElement(s.trim());
+        }
+
+        
+        while ((s = b2.readLine()) != null) {
+            String word[] = s.trim().split("\t");
+            s1 = word[0] + word[1];   
+            macroNameHash.put(word[0], 1);
+            kpHash.put(s1, Integer.parseInt(word[2]));
+            mdtpHash.put(s1, Integer.parseInt(word[3]));
+            kpdtpHash.put(s1, Integer.parseInt(word[4]));
+        }
+
+        
+        while ((s = b1.readLine()) != null) {
+            String b1Split[] = s.trim().split("\\s+");
+
+            if (macroNameHash.containsKey(b1Split[0])) {
+
+                pp = b1Split[1].split(",").length;
+                int defaults = b1Split[1].split("=").length - 1;
+                pp = pp - defaults;
+
+                kp = kpHash.get(b1Split[0] + Integer.toString(pp));
+                mdtp = mdtpHash.get(b1Split[0] + Integer.toString(pp));
+                kpdtp = kpdtpHash.get(b1Split[0] + Integer.toString(pp));
+
+                String actualParams[] = b1Split[1].split(",");
+                paramNo = 1;
+
+                
+                for (int j = 0; j < pp; j++) {
+                    aptab.put(paramNo, actualParams[paramNo - 1]);
+                    aptabInverse.put(actualParams[paramNo - 1], paramNo);
+                    paramNo++;
+                }
+
+                
+                i = kpdtp - 1;
+                for (int j = 0; j < kp; j++) {
+                    String temp[] = kpdt.get(i).split("\t");
+                    aptab.put(paramNo, temp[1]);
+                    aptabInverse.put(temp[0], paramNo);
+                    i++;
+                    paramNo++;
+                }
+
+                
+                i = pp + 1;
+                while (i <= actualParams.length) {
+                    String initializedParams[] = actualParams[i - 1].split("=");
+                    if (initializedParams.length == 2) {
+                        aptab.put(aptabInverse.get(initializedParams[0].substring(1)), initializedParams[1]);
+                    }
+                    i++;
+                }
+
+                
+                i = mdtp - 1;
+                while (!mdt.get(i).equalsIgnoreCase("MEND")) {
+                    f1.write("\t");
+                    for (int j = 0; j < mdt.get(i).length(); j++) {
+                        if (mdt.get(i).charAt(j) == '#') {
+                            f1.write(aptab.get(Integer.parseInt("" + mdt.get(i).charAt(++j))));
+                        } else {
+                            f1.write(mdt.get(i).charAt(j));
+                        }
+                    }
+                    f1.write("\n");
+                    i++;
+                }
+
+                aptab.clear();
+                aptabInverse.clear();
+
+            } else {
+                f1.write("+ " + s + "\n");
+            }
+        }
+
+      
+        b1.close();
+        b2.close();
+        b3.close();
+        b4.close();
+        f1.close();
+ System.out.println(" Pass-2 Macro Processing completed. Output written to Pass2.txt");
+    }
+}

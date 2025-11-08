@@ -1,0 +1,84 @@
+package OS;  //REMOVE IF NOT RUN
+import java.util.Scanner;
+
+public class FCFS {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int n, temp;
+        float avgtat = 0, avgwt = 0;
+
+        System.out.println("***** First Come First Serve Scheduling *****");
+        System.out.print("Enter number of processes: ");
+        n = sc.nextInt();
+
+        int process[] = new int[n];
+        int arrivalTime[] = new int[n];
+        int burstTime[] = new int[n];
+        int completionTime[] = new int[n];
+        int TAT[] = new int[n];
+        int waitingTime[] = new int[n];
+
+        // Input process details
+        for (int i = 0; i < n; i++) {
+            process[i] = (i + 1);
+            System.out.print("\nEnter Arrival Time for Process " + (i + 1) + ": ");
+            arrivalTime[i] = sc.nextInt();
+            System.out.print("Enter Burst Time for Process " + (i + 1) + ": ");
+            burstTime[i] = sc.nextInt();
+        }
+
+        // Sort processes based on arrival time
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = i + 1; j < n; j++) {
+                if (arrivalTime[i] > arrivalTime[j]) {
+                    temp = process[i];
+                    process[i] = process[j];
+                    process[j] = temp;
+
+                    temp = arrivalTime[i];
+                    arrivalTime[i] = arrivalTime[j];
+                    arrivalTime[j] = temp;
+
+                    temp = burstTime[i];
+                    burstTime[i] = burstTime[j];
+                    burstTime[j] = temp;
+                }
+            }
+        }
+
+        // Calculate completion time
+        for (int i = 0; i < n; i++) {
+            if (i == 0) {
+                completionTime[i] = arrivalTime[i] + burstTime[i];
+            } else {
+                if (arrivalTime[i] > completionTime[i - 1]) {
+                    completionTime[i] = arrivalTime[i] + burstTime[i];
+                } else {
+                    completionTime[i] = completionTime[i - 1] + burstTime[i];
+                }
+            }
+        }
+
+        // Display results
+        System.out.println("\n---------------------------------------------");
+        System.out.println("Process\tArrival\tBurst\tCompletion\tTAT\tWaiting");
+        System.out.println("---------------------------------------------");
+
+        for (int i = 0; i < n; i++) {
+            TAT[i] = completionTime[i] - arrivalTime[i];
+            waitingTime[i] = TAT[i] - burstTime[i];
+            avgtat += TAT[i];
+            avgwt += waitingTime[i];
+
+            System.out.println("P" + process[i] + "\t" + arrivalTime[i] + "\t" + burstTime[i] + "\t"
+                    + completionTime[i] + "\t\t" + TAT[i] + "\t" + waitingTime[i]);
+        }
+
+        System.out.println("---------------------------------------------");
+        System.out.printf("Average Turnaround Time: %.2f ms\n", (avgtat / n));
+        System.out.printf("Average Waiting Time: %.2f ms\n", (avgwt / n));
+
+        sc.close();
+    }
+}
